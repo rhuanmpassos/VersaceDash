@@ -29,9 +29,14 @@ app.use((err, req, res, next) => {
     .json({ message: err.message ?? 'Erro interno. Verifique os logs.' })
 })
 
-const port = process.env.PORT || 3333
+// Exportar para Vercel Serverless Functions
+export default app
 
-app.listen(port, () => {
-  console.log(`🚀 API pronta em http://localhost:${port}`)
-})
+// Rodar servidor local apenas se não estiver na Vercel
+if (process.env.VERCEL !== '1') {
+  const port = process.env.PORT || 3333
+  app.listen(port, () => {
+    console.log(`🚀 API pronta em http://localhost:${port}`)
+  })
+}
 

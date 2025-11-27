@@ -34,7 +34,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div class="min-h-screen min-h-[100dvh] bg-versace-night text-slate-100">
+  <div class="min-h-[100dvh] bg-versace-night text-slate-100">
     <!-- Mostrar header apenas se não estiver na página de login -->
     <div v-if="!isLoginPage" class="mx-auto flex max-w-7xl flex-col gap-4 sm:gap-6 md:gap-8 px-3 sm:px-4 pb-6 sm:pb-8 md:pb-10 pt-3 sm:pt-4 md:pt-6 lg:px-8">
       <header class="glass-panel relative overflow-hidden p-4 sm:p-5 md:p-6">

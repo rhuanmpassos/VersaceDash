@@ -1,16 +1,16 @@
-# 🚀 Guia de Deploy do Frontend na Vercel
+# 🚀 Guia Completo de Deploy na Vercel
 
-Este documento explica como fazer o deploy do **frontend** do projeto Versace Leads OS na Vercel.
+Este documento explica como fazer o deploy do **backend** e **frontend** do projeto Versace Leads OS na Vercel, separados (igual ao seu projeto Next.js).
 
 ## 📋 Situação Atual
 
 | Componente | Status | Hospedagem |
 |------------|--------|------------|
-| **Backend API** | ✅ Já configurado | Render |
 | **Banco de Dados** | ✅ Já configurado | Render PostgreSQL |
-| **Frontend** | ⏳ Pendente | Vercel |
+| **Backend API** | ⏳ Pendente | Vercel (Serverless) |
+| **Frontend** | ⏳ Pendente | Vercel (Static) |
 
-### Arquitetura
+### Arquitetura Final
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -19,18 +19,16 @@ Este documento explica como fazer o deploy do **frontend** do projeto Versace Le
 │  │          Frontend (Vue.js/Vite - Static)                  │  │
 │  │              seu-projeto.vercel.app                       │  │
 │  └───────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │          Backend (Node.js/Express - Serverless)          │  │
+│  │          seu-backend.vercel.app                          │  │
+│  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
                               │
-                              │ VITE_API_URL
+                              │ DATABASE_URL
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                         RENDER                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │            Backend (Node.js + Express + Prisma)           │  │
-│  │                   ✅ Já rodando                           │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │              PostgreSQL Database                          │  │
 │  │    dpg-d4j80eemcj7s73bc1ri0-a.oregon-postgres.render.com │  │
@@ -41,40 +39,27 @@ Este documento explica como fazer o deploy do **frontend** do projeto Versace Le
 
 ---
 
-## 🎨 Deploy do Frontend na Vercel
+## 🗄️ Banco de Dados
 
-### Pré-requisitos
+O banco de dados PostgreSQL já está configurado no Render:
 
-- [x] Backend rodando no Render
-- [x] Banco de dados PostgreSQL configurado
-- [ ] Conta no GitHub com o repositório do projeto
-- [ ] Conta na Vercel (gratuito)
-
----
-
-### Passo 1: Verificar arquivo `vercel.json`
-
-O arquivo `vercel.json` já está configurado na raiz do projeto:
-
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/((?!api).*)",
-      "destination": "/index.html"
-    }
-  ]
-}
+```
+DATABASE_URL=postgresql://rhuan:aIddTJ0AK7k9fl85WdOPFGaBRaX5USJH@dpg-d4j80eemcj7s73bc1ri0-a.oregon-postgres.render.com/telegram_fvwj
 ```
 
 ✅ **Já está pronto!**
 
 ---
 
-### Passo 2: Fazer Deploy na Vercel
+## ⚙️ PASSO 1: Deploy do Backend na Vercel
+
+### 1.1 Preparação
+
+O backend já está preparado com:
+- ✅ `server/vercel.json` configurado
+- ✅ `server/src/index.js` adaptado para Vercel Serverless
+
+### 1.2 Deploy do Backend
 
 1. Acesse [vercel.com](https://vercel.com) e faça login com GitHub
 
@@ -82,61 +67,110 @@ O arquivo `vercel.json` já está configurado na raiz do projeto:
 
 3. Selecione o repositório `otimizacaoDC`
 
-4. Configure o projeto:
+4. ⚠️ **IMPORTANTE**: Configure o projeto para o **BACKEND**:
    | Configuração | Valor |
    |--------------|-------|
-   | **Framework Preset** | Vite |
-   | **Root Directory** | `.` (deixe vazio) |
-   | **Build Command** | `npm run build` |
-   | **Output Directory** | `dist` |
+   | **Framework Preset** | Other |
+   | **Root Directory** | `server` |
+   | **Build Command** | `npm install && npm run prisma:generate` |
+   | **Output Directory** | (deixe vazio) |
 
-5. **⚠️ IMPORTANTE** - Adicione a Variável de Ambiente:
-   
-   Clique em **"Environment Variables"** e adicione:
+5. Adicione as **Variáveis de Ambiente**:
    
    | Nome | Valor |
    |------|-------|
-   | `VITE_API_URL` | `https://SEU-BACKEND.onrender.com` |
+   | `DATABASE_URL` | `postgresql://rhuan:aIddTJ0AK7k9fl85WdOPFGaBRaX5USJH@dpg-d4j80eemcj7s73bc1ri0-a.oregon-postgres.render.com/telegram_fvwj` |
+   | `PORT` | `3333` |
+   | `JWT_SECRET` | `sua-chave-secreta-super-forte-minimo-32-caracteres` |
+   | `ADMIN_EMAIL` | `rhuanc01@gmail.com` |
+   | `ADMIN_PASSWORD_HASH` | `$2b$10$...` (hash bcrypt da sua senha) |
+   | `FRONTEND_URL` | `https://seu-frontend.vercel.app` (adicionar depois) |
+   | `NODE_ENV` | `production` |
 
-   > **Substitua** `SEU-BACKEND` pela URL real do seu backend no Render!
+   **Para gerar o hash da senha**, rode localmente:
+   ```bash
+   cd server
+   node -e "const bcrypt = require('bcrypt'); bcrypt.hash('SuaSenhaAqui', 10).then(h => console.log(h))"
+   ```
 
 6. Clique em **"Deploy"**
 
-7. Aguarde o build completar (~1-2 minutos)
+7. Aguarde o build completar (~2-3 minutos)
 
-8. Acesse a URL gerada (ex: `https://seu-projeto.vercel.app`)
+8. ⚠️ **Anote a URL gerada** (ex: `https://versace-api.vercel.app`)
+
+9. Teste acessando: `https://seu-backend.vercel.app/health`
 
 ---
 
-### Passo 3: Configurar CORS no Backend (se necessário)
+## 🎨 PASSO 2: Deploy do Frontend na Vercel
 
-Se você receber erros de CORS, adicione a URL do frontend nas variáveis do backend no Render:
+### 2.1 Preparação
 
-1. Acesse o dashboard do Render
-2. Vá no seu serviço de backend
-3. Em **Environment**, adicione:
+O frontend já está preparado com:
+- ✅ `vercel.json` configurado na raiz
+- ✅ Rewrites para Vue Router funcionar
+
+### 2.2 Deploy do Frontend
+
+1. Ainda na Vercel, clique em **"Add New..."** → **"Project"** novamente
+
+2. Selecione o **mesmo repositório** `otimizacaoDC`
+
+3. ⚠️ **IMPORTANTE**: Configure o projeto para o **FRONTEND**:
+   | Configuração | Valor |
+   |--------------|-------|
+   | **Framework Preset** | Vite |
+   | **Root Directory** | `.` (deixe vazio ou `.`) |
+   | **Build Command** | `npm run build` |
+   | **Output Directory** | `dist` |
+
+4. Adicione a **Variável de Ambiente**:
+   
+   | Nome | Valor |
+   |------|-------|
+   | `VITE_API_URL` | `https://seu-backend.vercel.app` |
+
+   ⚠️ **Use a URL do backend que você anotou no Passo 1!**
+
+5. Clique em **"Deploy"**
+
+6. Aguarde o build completar (~1-2 minutos)
+
+7. ⚠️ **Anote a URL gerada** (ex: `https://versace-frontend.vercel.app`)
+
+---
+
+## 🔧 PASSO 3: Configurar CORS e Conectar os Serviços
+
+### 3.1 Atualizar FRONTEND_URL no Backend
+
+1. Vá no projeto do **backend** na Vercel
+2. Vá em **Settings** → **Environment Variables**
+3. Atualize a variável `FRONTEND_URL` com a URL do frontend:
    ```
-   FRONTEND_URL=https://seu-projeto.vercel.app
+   FRONTEND_URL=https://seu-frontend.vercel.app
    ```
+4. Clique em **"Redeploy"** para aplicar as mudanças
 
-4. E atualize o arquivo `server/src/index.js` para aceitar a origem da Vercel:
+### 3.2 Configurar CORS no Backend (se necessário)
+
+O arquivo `server/src/index.js` já está configurado para aceitar requisições da Vercel. Se precisar ajustar, edite:
 
 ```javascript
-// Configurar CORS para produção
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  process.env.FRONTEND_URL,
-].filter(Boolean)
-
 app.use(cors({
   origin: (origin, callback) => {
     // Permitir requests sem origin (mobile apps, Postman, etc)
     if (!origin) return callback(null, true)
     
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-      return callback(null, true)
-    }
+    // Permitir localhost em desenvolvimento
+    if (origin.includes('localhost')) return callback(null, true)
+    
+    // Permitir domínios da Vercel
+    if (origin.endsWith('.vercel.app')) return callback(null, true)
+    
+    // Permitir FRONTEND_URL configurada
+    if (origin === process.env.FRONTEND_URL) return callback(null, true)
     
     callback(new Error('Not allowed by CORS'))
   },
@@ -146,24 +180,69 @@ app.use(cors({
 
 ---
 
+## 🔄 PASSO 4: Rodar Migrations do Prisma
+
+Após o deploy, você precisa rodar as migrations do Prisma no banco de dados.
+
+### Opção 1: Via Vercel CLI (Recomendado)
+
+```bash
+# Instalar Vercel CLI
+npm install -g vercel
+
+# Fazer login
+vercel login
+
+# Conectar ao projeto backend
+cd server
+vercel link
+
+# Rodar migrations
+vercel env pull .env.production
+npx prisma migrate deploy
+```
+
+### Opção 2: Localmente (conectando ao banco remoto)
+
+```bash
+# Na pasta server
+cd server
+
+# Configurar DATABASE_URL temporariamente
+export DATABASE_URL="postgresql://rhuan:aIddTJ0AK7k9fl85WdOPFGaBRaX5USJH@dpg-d4j80eemcj7s73bc1ri0-a.oregon-postgres.render.com/telegram_fvwj"
+
+# Rodar migrations
+npm run prisma:deploy
+```
+
+### Opção 3: Via Render SQL Editor
+
+Se o Render tiver SQL Editor, você pode executar o SQL das migrations diretamente:
+1. Acesse o dashboard do Render
+2. Vá no seu banco PostgreSQL
+3. Execute o conteúdo de `server/prisma/migrations/*/migration.sql`
+
+---
+
 ## 📝 Resumo das Variáveis de Ambiente
+
+### Backend (Vercel)
+
+| Variável | Descrição | Valor |
+|----------|-----------|-------|
+| `DATABASE_URL` | URL do PostgreSQL no Render | `postgresql://rhuan:...@dpg-d4j80eemcj7s73bc1ri0-a.oregon-postgres.render.com/telegram_fvwj` |
+| `PORT` | Porta (não usado na Vercel, mas mantém compatibilidade) | `3333` |
+| `JWT_SECRET` | Chave secreta para tokens JWT | `sua-chave-super-secreta` |
+| `ADMIN_EMAIL` | Email do administrador | `rhuanc01@gmail.com` |
+| `ADMIN_PASSWORD_HASH` | Hash bcrypt da senha | `$2b$10$...` |
+| `FRONTEND_URL` | URL do frontend na Vercel | `https://seu-frontend.vercel.app` |
+| `NODE_ENV` | Ambiente | `production` |
 
 ### Frontend (Vercel)
 
 | Variável | Descrição | Valor |
 |----------|-----------|-------|
-| `VITE_API_URL` | URL da API no Render | `https://SEU-BACKEND.onrender.com` |
-
-### Backend (Render) - Já configurado
-
-| Variável | Descrição |
-|----------|-----------|
-| `DATABASE_URL` | ✅ Já configurado |
-| `PORT` | ✅ Já configurado |
-| `JWT_SECRET` | ✅ Já configurado |
-| `ADMIN_EMAIL` | ✅ Já configurado |
-| `ADMIN_PASSWORD_HASH` | ✅ Já configurado |
-| `FRONTEND_URL` | Adicionar após deploy (URL da Vercel) |
+| `VITE_API_URL` | URL do backend na Vercel | `https://seu-backend.vercel.app` |
 
 ---
 
@@ -171,26 +250,39 @@ app.use(cors({
 
 ### Erro: "CORS blocked"
 
-- Adicione `FRONTEND_URL` nas variáveis do backend no Render
-- Certifique-se que a URL não tem barra no final
-- Verifique se o código de CORS aceita `.vercel.app`
+- Verifique se `FRONTEND_URL` está configurada no backend
+- Confirme que a URL não tem barra no final
+- Certifique-se que o código de CORS aceita `.vercel.app`
+
+### Erro: "Cannot connect to database"
+
+- Verifique se `DATABASE_URL` está correta
+- Confirme que o banco está ativo no Render
+- Teste a conexão localmente primeiro
+
+### Erro: "401 Unauthorized" no login
+
+- Gere um novo hash de senha e atualize `ADMIN_PASSWORD_HASH`
+- Verifique se `ADMIN_EMAIL` está correto
+- Confirme que `JWT_SECRET` está definido
+
+### Erro: "Module not found" no deploy do backend
+
+- Certifique-se que o Root Directory está como `server`
+- Verifique se o `package.json` está na pasta `server`
+- Confira os logs de build na Vercel
 
 ### Frontend mostra página em branco
 
 - Verifique o console do navegador (F12)
-- Confirme que `VITE_API_URL` está configurada corretamente na Vercel
-- A URL deve ser **sem barra** no final: `https://api.onrender.com` ✅
+- Confirme que `VITE_API_URL` está configurada corretamente
+- A URL deve ser **sem barra** no final: `https://api.vercel.app` ✅
 
-### Erro: "Failed to fetch" ou "Network Error"
+### Backend retorna 404 nas rotas
 
-- Verifique se o backend está rodando no Render
-- Teste acessando `https://SEU-BACKEND.onrender.com/health` no navegador
-- Confira se a variável `VITE_API_URL` está correta
-
-### Build falha na Vercel
-
-- Verifique se o `package.json` está na raiz do projeto
-- Confira os logs de build na Vercel para ver o erro específico
+- Verifique se o `server/vercel.json` está configurado corretamente
+- Confirme que as rotas começam com `/api/` (ex: `/api/auth/login`)
+- Teste a rota `/health` primeiro
 
 ---
 
@@ -200,20 +292,35 @@ Após o deploy, você terá:
 
 | Serviço | URL |
 |---------|-----|
-| **Frontend** | `https://seu-projeto.vercel.app` |
-| **Backend API** | `https://SEU-BACKEND.onrender.com/api` |
-| **Health Check** | `https://SEU-BACKEND.onrender.com/health` |
+| **Frontend** | `https://seu-frontend.vercel.app` |
+| **Backend API** | `https://seu-backend.vercel.app/api` |
+| **Health Check** | `https://seu-backend.vercel.app/health` |
+| **Login** | `https://seu-backend.vercel.app/api/auth/login` |
 
 ---
 
 ## ✅ Checklist Final
 
+- [ ] Backend deployado na Vercel
 - [ ] Frontend deployado na Vercel
-- [ ] Variável `VITE_API_URL` configurada na Vercel
-- [ ] Variável `FRONTEND_URL` configurada no Render (para CORS)
+- [ ] Todas as variáveis de ambiente configuradas
+- [ ] `FRONTEND_URL` configurada no backend
+- [ ] `VITE_API_URL` configurada no frontend
+- [ ] Migrations do Prisma rodadas
 - [ ] Teste de login funcionando
 - [ ] Dashboard carregando dados
 
 ---
 
-**Pronto!** Seu projeto está no ar! 🎉
+## 🔒 Segurança
+
+⚠️ **IMPORTANTE**: 
+
+- Nunca commite o arquivo `.env` com credenciais
+- Use variáveis de ambiente na Vercel
+- `JWT_SECRET` deve ser uma string aleatória forte (mínimo 32 caracteres)
+- `ADMIN_PASSWORD_HASH` deve ser um hash bcrypt válido (nunca a senha em texto puro)
+
+---
+
+**Pronto!** Seu projeto está no ar na Vercel! 🎉
