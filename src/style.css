@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  color: #f5f3ff;
+  background-color: #0e0b14;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar customizada global - fina e escura */
+html {
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #322140 #0e0b14;
+}
+
+html::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: #0e0b14;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: #322140;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: #4a3160;
+}
+
+/* Scrollbar para outros elementos */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #0e0b14;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #322140;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #4a3160;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #322140 #0e0b14;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0e0b14;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: radial-gradient(circle at top, rgba(138, 43, 226, 0.2), transparent 45%),
+    #0e0b14;
+}
+
+/* Remove scroll quando estiver na página de login */
+body.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: #0e0b14;
+}
+
+.glass-panel {
+  @apply bg-versace-panel/90 border border-versace-border rounded-2xl backdrop-blur-xl shadow-neon;
+}
+
+.gradient-text {
+  background: linear-gradient(120deg, #d8b4fe 0%, #a855f7 50%, #f0abfc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

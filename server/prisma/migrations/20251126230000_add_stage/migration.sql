@@ -1,0 +1,11 @@
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'LeadStage') THEN
+    CREATE TYPE "LeadStage" AS ENUM ('NA_BASE', 'EM_CONTATO', 'COMPRADO', 'REJEITADO');
+  END IF;
+END
+$$;
+
+ALTER TABLE "Lead"
+  ADD COLUMN IF NOT EXISTS "stage" "LeadStage" NOT NULL DEFAULT 'NA_BASE';
+

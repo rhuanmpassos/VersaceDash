@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStage {
+  NA_BASE
+  EM_CONTATO
+  COMPRADO
+  REJEITADO
+}
+
+model Lead {
+  id           String    @id @default(cuid())
+  nome         String
+  whatsapp     String
+  createdAt    DateTime  @default(now()) @map("created_at")
+  referralCode String?   @map("referral_code")
+  ip           String?
+  userAgent    String?   @map("user_agent")
+  stage        LeadStage @default(NA_BASE)
+
+  @@map("Lead")
+  @@index([stage])
+  @@index([referralCode])
+}
+
+model Referrer {
+  id           String   @id @default(cuid())
+  nome         String
+  whatsapp     String
+  referralCode String   @map("referral_code")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("Referrer")
+  @@unique([referralCode])
+}
+
+model ReferralHit {
+  id           String   @id @default(cuid())
+  referralCode String   @map("referral_code")
+  ip           String
+  userAgent    String   @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("ReferralHit")
+  @@index([referralCode])
+}
+
