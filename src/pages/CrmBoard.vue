@@ -47,6 +47,7 @@ const lanes = reactive({
 
 const laneRefs = ref({})
 const sortableInstances = ref({})
+const sortableElements = ref({})
 
 const setLaneRef = (el, stageId) => {
   if (el) {
@@ -56,9 +57,20 @@ const setLaneRef = (el, stageId) => {
 }
 
 const initSortable = (stageId, el) => {
+  if (!el) return
+  
+  // Verificar se este elemento já foi inicializado
+  if (sortableElements.value[stageId] === el && sortableInstances.value[stageId]) {
+    return
+  }
+
   // Destruir instância anterior se existir
   if (sortableInstances.value[stageId]) {
-    sortableInstances.value[stageId].destroy()
+    try {
+      sortableInstances.value[stageId].destroy()
+    } catch (e) {
+      // Ignorar erros ao destruir instância
+    }
   }
 
   sortableInstances.value[stageId] = Sortable.create(el, {
@@ -142,6 +154,9 @@ const initSortable = (stageId, el) => {
       }
     },
   })
+  
+  // Guardar referência ao elemento
+  sortableElements.value[stageId] = el
 }
 
 const resetForm = () => {
@@ -156,13 +171,21 @@ const syncLanes = async (leads) => {
     console.warn('syncLanes recebeu dados inválidos:', leads)
     return
   }
+  
   LEAD_STAGES.forEach((stage) => {
     const filtered = leads.filter((lead) => {
       const leadStage = lead?.stage ?? 'NA_BASE'
       return leadStage === stage.id
     })
-    // Limpar o array existente e adicionar os novos itens para manter a reatividade
-    lanes[stage.id].splice(0, lanes[stage.id].length, ...filtered)
+    
+    // Verificar se realmente mudou antes de atualizar
+    const currentIds = lanes[stage.id].map(l => l.id).sort().join(',')
+    const newIds = filtered.map(l => l.id).sort().join(',')
+    
+    if (currentIds !== newIds) {
+      // Limpar o array existente e adicionar os novos itens para manter a reatividade
+      lanes[stage.id].splice(0, lanes[stage.id].length, ...filtered)
+    }
   })
   await nextTick()
 }
@@ -182,31 +205,47 @@ onMounted(async () => {
 })
 
 const leadsList = computed(() => store.leads ?? [])
+const isSyncing = ref(false)
+const lastLeadsHash = ref('')
 
 watch(
   leadsList,
   async (leads) => {
-    if (!leads || !Array.isArray(leads)) {
+    if (!leads || !Array.isArray(leads) || isSyncing.value) {
       return
     }
-    await syncLanes(leads)
-    // Reinicializar SortableJS após atualizar os lanes
-    await nextTick()
-    LEAD_STAGES.forEach((stage) => {
-      if (laneRefs.value[stage.id]) {
-        initSortable(stage.id, laneRefs.value[stage.id])
+    
+    // Criar hash dos IDs dos leads para verificar se realmente mudou
+    const leadsHash = leads.map(l => `${l.id}:${l.stage}`).sort().join('|')
+    if (leadsHash === lastLeadsHash.value) {
+      return // Não mudou, não precisa atualizar
+    }
+    
+    isSyncing.value = true
+    lastLeadsHash.value = leadsHash
+    
+    try {
+      await syncLanes(leads)
+      // Reinicializar SortableJS após atualizar os lanes
+      await nextTick()
+      LEAD_STAGES.forEach((stage) => {
+        if (laneRefs.value[stage.id]) {
+          initSortable(stage.id, laneRefs.value[stage.id])
+        }
+      })
+      if (selectedLead.value) {
+        const updated =
+          store.leads.find((lead) => lead.id === selectedLead.value?.id) ?? null
+        selectedLead.value = updated
+        if (!updated) {
+          showModal.value = false
+        }
       }
-    })
-    if (selectedLead.value) {
-      const updated =
-        store.leads.find((lead) => lead.id === selectedLead.value?.id) ?? null
-      selectedLead.value = updated
-      if (!updated) {
-        showModal.value = false
-      }
+    } finally {
+      isSyncing.value = false
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true, deep: false },
 )
 
 const selectLead = (lead) => {
