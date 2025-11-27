@@ -8,7 +8,26 @@ import { authenticateToken } from './middleware/auth.js'
 
 const app = express()
 
-app.use(cors())
+// Configurar CORS para aceitar requisições da Vercel e localhost
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permitir requests sem origin (mobile apps, Postman, etc)
+    if (!origin) return callback(null, true)
+    
+    // Permitir localhost em desenvolvimento
+    if (origin.includes('localhost')) return callback(null, true)
+    
+    // Permitir domínios da Vercel
+    if (origin.endsWith('.vercel.app')) return callback(null, true)
+    
+    // Permitir FRONTEND_URL configurada
+    if (origin === process.env.FRONTEND_URL) return callback(null, true)
+    
+    callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true
+}))
+
 app.use(express.json())
 
 app.get('/health', (req, res) => {
