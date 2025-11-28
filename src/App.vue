@@ -10,6 +10,7 @@ const authStore = useAuthStore()
 const navLinks = [
   { name: 'Dashboard', to: '/dashboard' },
   { name: 'CRM', to: '/crm' },
+  { name: 'Analytics', to: '/analytics' },
 ]
 
 const activePath = computed(() => route.path)

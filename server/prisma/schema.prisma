@@ -47,7 +47,32 @@ model ReferralHit {
   userAgent    String   @map("user_agent")
   createdAt    DateTime @default(now()) @map("created_at")
 
+  // Dados de Navegação
+  referrer     String?  // Domínio de origem (ex: "google.com", "facebook.com")
+  utmSource    String?  @map("utm_source")
+  utmMedium    String?  @map("utm_medium")
+  utmCampaign  String?  @map("utm_campaign")
+
+  // Dados de Dispositivo
+  deviceType   String?  @map("device_type") // "mobile", "desktop", "tablet"
+  os           String?  // "Windows", "macOS", "Android", "iOS", etc
+  browser      String?  // "Chrome", "Firefox", "Safari", "Edge", etc
+  screenWidth  Int?     @map("screen_width")
+  screenHeight Int?     @map("screen_height")
+
+  // Localização (via IP)
+  country      String?  // Código do país (ex: "BR", "US")
+  city         String?
+  region       String?
+
+  // Dados Técnicos
+  language     String?
+  timezone     String?
+
   @@map("ReferralHit")
   @@index([referralCode])
+  @@index([createdAt])
+  @@index([deviceType])
+  @@index([country])
 }
 

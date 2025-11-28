@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore'
 
 const Dashboard = () => import('../pages/Dashboard.vue')
 const CrmBoard = () => import('../pages/CrmBoard.vue')
+const Analytics = () => import('../pages/Analytics.vue')
 const Login = () => import('../pages/Login.vue')
 
 const router = createRouter({
@@ -28,6 +29,12 @@ const router = createRouter({
       path: '/crm', 
       name: 'CRM', 
       component: CrmBoard,
+      meta: { requiresAuth: true }
+    },
+    { 
+      path: '/analytics', 
+      name: 'Analytics', 
+      component: Analytics,
       meta: { requiresAuth: true }
     },
   ],

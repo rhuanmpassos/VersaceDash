@@ -4,6 +4,7 @@ import cors from 'cors'
 import leadsRouter from './routes/leads.js'
 import statsRouter from './routes/stats.js'
 import authRouter from './routes/auth.js'
+import analyticsRouter from './routes/analytics.js'
 import { authenticateToken } from './middleware/auth.js'
 
 const app = express()
@@ -40,6 +41,7 @@ app.use('/api/auth', authRouter)
 // Rotas protegidas
 app.use('/api/leads', authenticateToken, leadsRouter)
 app.use('/api/stats', authenticateToken, statsRouter)
+app.use('/api/analytics', authenticateToken, analyticsRouter)
 
 app.use((err, req, res, next) => {
   console.error(err)

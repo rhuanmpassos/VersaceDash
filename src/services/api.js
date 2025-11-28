@@ -51,5 +51,13 @@ export const createLead = (payload) => api.post('/leads', payload)
 export const updateLeadStage = (id, stage) =>
   api.patch(`/leads/${id}/stage`, { stage })
 
+// Analytics API
+export const fetchAnalyticsDashboard = (params = {}) => 
+  api.get('/analytics', { params })
+export const fetchAnalyticsClicks = (params = {}) => 
+  api.get('/analytics/clicks', { params })
+export const fetchAnalyticsFilters = () => 
+  api.get('/analytics/filters')
+
 export default api
 
