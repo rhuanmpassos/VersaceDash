@@ -18,6 +18,7 @@ const store = useAnalyticsStore()
 // Local state
 const activeTab = ref('overview')
 const showFilters = ref(false)
+const conversionValue = ref(60) // Valor por conversão em R$
 const localFilters = ref({
   period: '30days',
   startDate: '',
@@ -76,6 +77,11 @@ const resetFilters = () => {
 // Computed
 const summary = computed(() => store.summary)
 
+const calculatedEarnings = computed(() => {
+  const conversions = summary.value?.convertedLeads ?? 0
+  return conversions * conversionValue.value
+})
+
 const cardData = computed(() => {
   const s = summary.value
   if (!s) return []
@@ -101,8 +107,8 @@ const cardData = computed(() => {
     },
     {
       title: 'GANHOS',
-      value: `R$ ${(s.earnings ?? 0).toLocaleString('pt-BR')}`,
-      helper: 'R$ 60 por conversão',
+      value: `R$ ${calculatedEarnings.value.toLocaleString('pt-BR')}`,
+      helper: `${s.convertedLeads ?? 0} × R$ ${conversionValue.value}`,
       accent: 'from-amber-400 to-orange-500'
     }
   ]
@@ -164,7 +170,18 @@ const exportData = (format) => {
         <p class="uppercase tracking-[0.4em] text-slate-500 text-xs">Analytics</p>
         <p class="text-base text-slate-300">Análise detalhada de cliques e conversões</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Valor por conversão -->
+        <div class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
+          <label class="text-xs text-slate-400 whitespace-nowrap">R$ por conversão:</label>
+          <input
+            v-model.number="conversionValue"
+            type="number"
+            min="0"
+            step="1"
+            class="w-20 bg-transparent border-none text-sm text-white font-medium focus:outline-none text-right no-spinner"
+          />
+        </div>
         <button
           @click="showFilters = !showFilters"
           class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 hover:border-purple-400 transition"
@@ -601,6 +618,16 @@ const exportData = (format) => {
 .slide-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+/* Remove setas do input number */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
 }
 </style>
 

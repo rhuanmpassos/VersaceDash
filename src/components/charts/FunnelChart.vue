@@ -17,33 +17,28 @@ const funnelWithRates = computed(() => {
     const prevValue = index > 0 ? props.funnel[index - 1].value : item.value
     const dropRate = prevValue > 0 ? ((item.value / prevValue) * 100).toFixed(1) : 100
     const totalRate = first > 0 ? ((item.value / first) * 100).toFixed(1) : 0
-    const width = first > 0 ? Math.max((item.value / first) * 100, 20) : 100
     
     return {
       ...item,
       dropRate: Number(dropRate),
-      totalRate: Number(totalRate),
-      width
+      totalRate: Number(totalRate)
     }
   })
 })
 </script>
 
 <template>
-  <div class="h-full flex flex-col justify-center space-y-3">
+  <div class="h-full flex flex-col justify-center space-y-2">
     <div
       v-for="(item, index) in funnelWithRates"
       :key="item.stage"
       class="relative"
     >
       <div
-        class="h-14 rounded-xl flex items-center justify-center gap-3 px-4 transition-all duration-500 mx-auto"
-        :style="{
-          width: `${item.width}%`,
-          backgroundColor: item.color
-        }"
+        class="h-12 rounded-xl flex items-center justify-center gap-3 px-4 transition-all duration-500"
+        :style="{ backgroundColor: item.color }"
       >
-        <span class="font-semibold text-white text-sm">{{ item.stage }}</span>
+        <span class="font-semibold text-white text-sm whitespace-nowrap">{{ item.stage }}</span>
         <span class="font-bold text-white text-lg">{{ item.value }}</span>
       </div>
       
@@ -53,7 +48,7 @@ const funnelWithRates = computed(() => {
         class="flex items-center justify-center py-1"
       >
         <div class="flex items-center gap-2 text-xs text-slate-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
           </svg>
           <span>{{ funnelWithRates[index + 1]?.dropRate }}%</span>
